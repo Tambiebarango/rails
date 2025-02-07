@@ -885,6 +885,7 @@ module ActiveRecord
     #
     def left_outer_joins(*args)
       check_if_method_has_arguments!(__callee__, args)
+      check_for_deprecated_association_arguments(args)
       spawn.left_outer_joins!(*args)
     end
     alias :left_joins :left_outer_joins
@@ -2219,16 +2220,28 @@ module ActiveRecord
         end
       end
 
-      def check_for_deprecated_association_arguments(args)
+      def check_for_deprecated_association_arguments(args, base_klass = self)
         return unless args.kind_of?(Array)
 
         args.each do |arg|
           if arg.kind_of?(Hash)
+            arg.each do |assoc, nested_assocs|
+              reflection = base_klass.reflect_on_association(assoc)
+
+              next unless reflection
+
+              nested_assocs = Array.wrap(nested_assocs) if nested_assocs.kind_of?(Symbol)
+              check_for_deprecated_association_arguments(nested_assocs, reflection.class_name.constantize)
+            end
+
             check_for_deprecated_association_arguments(arg.keys)
           else
-            reflection = self.reflect_on_association(arg)
+            reflection = base_klass.reflect_on_association(arg)
+
+            next unless reflection
+
             association_deprecated = reflection.association_deprecated?
-            base_class_name = reflection.active_record.name
+            base_class_name = base_klass.name
 
             next unless association_deprecated
 

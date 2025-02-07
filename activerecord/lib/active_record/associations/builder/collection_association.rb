@@ -60,6 +60,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name.to_s.singularize}_ids
+          if #{association_deprecated}
+            ActiveRecord.deprecator.warn("The association #{name} #{model_name.present? and "on #{model_name}"} has been deprecated.")
+          end
+
           association(:#{name}).ids_reader
         end
       CODE
@@ -70,6 +74,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name.to_s.singularize}_ids=(ids)
+          if #{association_deprecated}
+            ActiveRecord.deprecator.warn("The association #{name} #{model_name.present? and "on #{model_name}"} has been deprecated.")
+          end
+
           association(:#{name}).ids_writer(ids)
         end
       CODE

@@ -144,10 +144,18 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.define_change_tracking_methods(model, reflection)
       model.generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{reflection.name}_changed?
+          if #{reflection.association_deprecated?}
+            ActiveRecord.deprecator.warn("The association #{reflection.name} on #{reflection.active_record.name} has been deprecated.")
+          end
+
           association(:#{reflection.name}).target_changed?
         end
 
         def #{reflection.name}_previously_changed?
+          if #{reflection.association_deprecated?}
+            ActiveRecord.deprecator.warn("The association #{reflection.name} on #{reflection.active_record.name} has been deprecated.")
+          end
+
           association(:#{reflection.name}).target_previously_changed?
         end
       CODE
