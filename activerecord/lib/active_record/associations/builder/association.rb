@@ -105,7 +105,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}
           if #{association_deprecated}
-            ActiveRecord.deprecator.warn("The association #{name} #{model_name.present? and "on #{model_name}"} has been deprecated.")
+            ActiveRecord.deprecator.warn("The association #{name} #{model_name.present? && "on #{model_name}"} has been deprecated.")
           end
 
           association(:#{name}).reader
@@ -117,7 +117,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}=(value)
           if #{association_deprecated}
-            ActiveRecord.deprecator.warn("The association #{name} #{model_name.present? and "on #{model_name}"} has been deprecated.")
+            ActiveRecord.deprecator.warn("The association #{name} #{model_name.present? && "on #{model_name}"} has been deprecated.")
           end
 
           association(:#{name}).writer(value)
