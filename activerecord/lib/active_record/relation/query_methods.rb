@@ -249,6 +249,7 @@ module ActiveRecord
     # matching user has other additional posts.
     def includes(*args)
       check_if_method_has_arguments!(__callee__, args)
+      check_for_deprecated_association_arguments(args)
       spawn.includes!(*args)
     end
 
@@ -289,6 +290,7 @@ module ActiveRecord
     # contain redundant data and it performs poorly at scale.
     def eager_load(*args)
       check_if_method_has_arguments!(__callee__, args)
+      check_for_deprecated_association_arguments(args)
       spawn.eager_load!(*args)
     end
 
@@ -867,6 +869,7 @@ module ActiveRecord
     #   # SELECT "users".* FROM "users" LEFT JOIN bookmarks ON bookmarks.bookmarkable_type = 'Post' AND bookmarks.user_id = users.id
     def joins(*args)
       check_if_method_has_arguments!(__callee__, args)
+      check_for_deprecated_association_arguments(args)
       spawn.joins!(*args)
     end
 
@@ -2213,6 +2216,24 @@ module ActiveRecord
 
           args.flatten!
           args.compact_blank!
+        end
+      end
+
+      def check_for_deprecated_association_arguments(args)
+        return unless args.kind_of?(Array)
+
+        args.each do |arg|
+          if arg.kind_of?(Hash)
+            check_for_deprecated_association_arguments(arg.keys)
+          else
+            reflection = self.reflect_on_association(arg)
+            association_deprecated = reflection.association_deprecated?
+            base_class_name = reflection.active_record.name
+
+            next unless association_deprecated
+
+            ActiveRecord.deprecator.warn("The #{arg} association on #{base_class_name} is deprecated")
+          end
         end
       end
 

@@ -19,7 +19,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     self.extensions = []
 
     VALID_OPTIONS = [
-      :class_name, :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of, :strict_loading, :query_constraints
+      :class_name, :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of, :strict_loading, :query_constraints, :association_deprecated
     ].freeze # :nodoc:
 
     def self.build(model, name, scope, options, &block)
@@ -33,7 +33,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       define_accessors(model, reflection)
       define_callbacks(model, reflection)
       define_validations(model, reflection)
-      define_change_tracking_methods(model, reflection)
+      define_change_tracking_methods(model, reflection) # this is where i'm at
       reflection
     end
 
@@ -95,21 +95,31 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.define_accessors(model, reflection)
       mixin = model.generated_association_methods
       name = reflection.name
-      define_readers(mixin, name)
-      define_writers(mixin, name)
+      association_deprecated = reflection.try(:association_deprecated?) || false # TODO THEODORE: Remove this try once all associations respond to this method.
+
+      define_readers(mixin, name, association_deprecated, model.name)
+      define_writers(mixin, name, association_deprecated, model.name)
     end
 
-    def self.define_readers(mixin, name)
+    def self.define_readers(mixin, name, association_deprecated = false, model_name = nil)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}
+          if #{association_deprecated}
+            ActiveRecord.deprecator.warn("The association #{name} #{model_name.present? and "on #{model_name}"} has been deprecated.")
+          end
+
           association(:#{name}).reader
         end
       CODE
     end
 
-    def self.define_writers(mixin, name)
+    def self.define_writers(mixin, name, association_deprecated = false, model_name = nil)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}=(value)
+          if #{association_deprecated}
+            ActiveRecord.deprecator.warn("The association #{name} #{model_name.present? and "on #{model_name}"} has been deprecated.")
+          end
+
           association(:#{name}).writer(value)
         end
       CODE

@@ -55,7 +55,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     # Defines the setter and getter methods for the collection_singular_ids.
-    def self.define_readers(mixin, name)
+    def self.define_readers(mixin, name, association_deprecated = false, model_name = nil)
       super
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -65,7 +65,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       CODE
     end
 
-    def self.define_writers(mixin, name)
+    def self.define_writers(mixin, name, association_deprecated = false, model_name = nil)
       super
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
