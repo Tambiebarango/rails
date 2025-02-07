@@ -33,7 +33,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       define_accessors(model, reflection)
       define_callbacks(model, reflection)
       define_validations(model, reflection)
-      define_change_tracking_methods(model, reflection) # this is where i'm at
+      define_change_tracking_methods(model, reflection)
       reflection
     end
 
@@ -95,7 +95,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.define_accessors(model, reflection)
       mixin = model.generated_association_methods
       name = reflection.name
-      association_deprecated = reflection.try(:association_deprecated?) || false # TODO THEODORE: Remove this try once all associations respond to this method.
+      association_deprecated = reflection.association_deprecated?
 
       define_readers(mixin, name, association_deprecated, model.name)
       define_writers(mixin, name, association_deprecated, model.name)

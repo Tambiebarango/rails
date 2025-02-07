@@ -323,6 +323,7 @@ module ActiveRecord
     #   # SELECT ...
     def preload(*args)
       check_if_method_has_arguments!(__callee__, args)
+      check_for_deprecated_association_arguments(args)
       spawn.preload!(*args)
     end
 
@@ -2221,31 +2222,23 @@ module ActiveRecord
       end
 
       def check_for_deprecated_association_arguments(args, base_klass = self)
-        return unless args.kind_of?(Array)
-
-        args.each do |arg|
+        Array.wrap(args).each do |arg|
           if arg.kind_of?(Hash)
             arg.each do |assoc, nested_assocs|
               reflection = base_klass.reflect_on_association(assoc)
 
               next unless reflection
 
-              nested_assocs = Array.wrap(nested_assocs) if nested_assocs.kind_of?(Symbol)
+              check_for_deprecated_association_arguments(assoc, base_klass)
               check_for_deprecated_association_arguments(nested_assocs, reflection.class_name.constantize)
             end
-
-            check_for_deprecated_association_arguments(arg.keys)
           else
             reflection = base_klass.reflect_on_association(arg)
 
             next unless reflection
+            next unless reflection.association_deprecated?
 
-            association_deprecated = reflection.association_deprecated?
-            base_class_name = base_klass.name
-
-            next unless association_deprecated
-
-            ActiveRecord.deprecator.warn("The #{arg} association on #{base_class_name} is deprecated")
+            ActiveRecord.deprecator.warn("The #{arg} association on #{base_klass.name} is deprecated")
           end
         end
       end

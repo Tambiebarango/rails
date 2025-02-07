@@ -12,7 +12,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       super
       mixin = model.generated_association_methods
       name = reflection.name
-      association_deprecated = reflection.try(:association_deprecated?) || false
+      association_deprecated = reflection.association_deprecated?
       model_name = model.name
 
       define_constructors(mixin, name, association_deprecated, model_name) unless reflection.polymorphic?
