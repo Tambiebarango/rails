@@ -526,6 +526,7 @@ module ActiveRecord
         @foreign_key = nil
         @association_foreign_key = nil
         @association_primary_key = nil
+        @association_deprecated = options[:association_deprecated] || false
         if options[:query_constraints]
           raise ConfigurationError, <<~MSG.squish
             Setting `query_constraints:` option on `#{active_record}.#{macro} :#{name}` is not allowed.
@@ -539,6 +540,10 @@ module ActiveRecord
         end
 
         ensure_option_not_given_as_class!(:class_name)
+      end
+
+      def association_deprecated?
+        @association_deprecated
       end
 
       def association_scope_cache(klass, owner, &block)

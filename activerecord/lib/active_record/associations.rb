@@ -1480,7 +1480,9 @@ module ActiveRecord
         #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
         #   This is an optional option. By default Rails will attempt to derive the value automatically.
         #   When the value is set the Array size must match associated model's primary key or +query_constraints+ size.
-        #
+        # [+:deprecated+]
+        #   Specifies if an association is deprecated. When set to +true+, a deprecation warning will be issued when this
+        #   association is called.
         # Option examples:
         #   has_one :credit_card, dependent: :destroy  # destroys the associated credit card
         #   has_one :credit_card, dependent: :nullify  # updates the associated records foreign
@@ -1495,6 +1497,7 @@ module ActiveRecord
         #   has_one :credit_card, required: true
         #   has_one :credit_card, strict_loading: true
         #   has_one :employment_record_book, query_constraints: [:organization_id, :employee_id]
+        #   has_one :credit_card, deprecated: true
         def has_one(name, scope = nil, **options)
           reflection = Builder::HasOne.build(self, name, scope, options)
           Reflection.add_reflection self, name, reflection
