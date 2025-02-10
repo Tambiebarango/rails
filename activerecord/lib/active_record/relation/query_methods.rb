@@ -2221,24 +2221,32 @@ module ActiveRecord
         end
       end
 
-      def check_for_deprecated_association_arguments(args, base_klass = self)
+      def check_for_deprecated_association_arguments(args, base_klass = model)
         Array.wrap(args).each do |arg|
           if arg.kind_of?(Hash)
             arg.each do |assoc, nested_assocs|
               reflection = base_klass.reflect_on_association(assoc)
 
               next unless reflection
+              next if reflection.polymorphic? # skip polymorphic associations
+
+              association_base_klass = reflection.klass || reflection.class_name.try(:constantize)
+
+              next unless association_base_klass
 
               check_for_deprecated_association_arguments(assoc, base_klass)
-              check_for_deprecated_association_arguments(nested_assocs, reflection.class_name.constantize)
+              check_for_deprecated_association_arguments(nested_assocs, association_base_klass)
             end
-          else
+          elsif arg.kind_of?(Symbol)
             reflection = base_klass.reflect_on_association(arg)
 
             next unless reflection
+            next if reflection.polymorphic? # skip polymorphic associations
             next unless reflection.association_deprecated?
 
-            ActiveRecord.deprecator.warn("The #{arg} association on #{base_klass.name} is deprecated")
+            ActiveRecord.deprecator.warn("The association #{arg} on #{base_klass.name} has been deprecated")
+          else
+            next
           end
         end
       end
